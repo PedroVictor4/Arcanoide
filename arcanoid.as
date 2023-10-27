@@ -16,6 +16,8 @@ ROW_SHIFT		EQU		8d
 COLUMN_SHIFT	EQU		8d
 SPACE EQU ' '
 BALL EQU '0'
+INITIALX EQU 41d
+INITIALY EQU 21d
 
 TIMER_UNITS   EQU FFF6h
 ACTIVATE_TIMER EQU FFF7h
@@ -174,6 +176,25 @@ ConfigureTimer: PUSH R1
         JMP.Z COLLISIONXLEFT
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         MOV R1, M[Positiony]
         MOV R2, M[Positionx]
         SHL R1, 8d
@@ -183,6 +204,7 @@ ConfigureTimer: PUSH R1
         MOV M[ IO_WRITE ], R1
 
         JMP FIM
+
         ;Caso colida
 
         COLLISIONYUP : MOV R1 ,M[Directiondown]
@@ -199,10 +221,19 @@ ConfigureTimer: PUSH R1
         OR R1, R2
         MOV M[CURSOR], R1
         MOV R1, BALL
-
+        MOV M[ IO_WRITE ], R1
         JMP NOTERASER
 
-        COLLISIONYDOWN :MOV R1 ,M[Directionup]
+        COLLISIONYDOWN :MOV R1,M[Positionx]
+        CMP R1,M[Startbar]
+        JMP.N LOSE
+        MOV R2,M[Startbar]
+        ADD R2,M[Lengthbar]
+        CMP R1,R2
+        JMP.P LOSE
+        ;INC M[Caracter]
+
+        MOV R1 ,M[Directionup]
         MOV M[Directiony],R1
 
         ADD M[Positiony],R1
@@ -215,7 +246,10 @@ ConfigureTimer: PUSH R1
         OR R1, R2
         MOV M[CURSOR], R1
         MOV R1, BALL
-        CALL Colisionbar
+
+
+        ;CALL Colisionbar
+
         JMP NOTERASER
 
         COLLISIONXRIGHT :MOV R1 ,M[Directionup]
@@ -230,7 +264,7 @@ ConfigureTimer: PUSH R1
         OR R1, R2
         MOV M[CURSOR], R1
         MOV R1, BALL
-
+        MOV M[ IO_WRITE ], R1
         JMP NOTERASER
 
         COLLISIONXLEFT : MOV R1 ,M[Directiondown]
@@ -245,11 +279,20 @@ ConfigureTimer: PUSH R1
         OR R1, R2
         MOV M[CURSOR], R1
         MOV R1, BALL
-
+        MOV M[ IO_WRITE ], R1
         JMP NOTERASER
 
+        LOSE : MOV R1,INITIALX
+        MOV R2,INITIALY
+        MOV M[Positionx],R1
+        MOV M[Positiony],R2
+        MOV R1,M[Directionup]
+        MOV R2,M[Directiondown]
+
+        MOV M[Directionx],R2
+        MOV M[Directiony],R1
         FIM : NOP
-        NOTERASER :CALL ConfigureTimer
+        NOTERASER : CALL ConfigureTimer
 
         POP R3
         POP R2
@@ -267,7 +310,22 @@ ConfigureTimer: PUSH R1
         ADD R2,M[Lengthbar]
         CMP R1,R2
         JMP.P OUT
-        INC M[Caracter]
+        ;INC M[Caracter]
+
+        MOV R1 ,M[Directionup]
+        MOV M[Directiony],R1
+
+        ADD M[Positiony],R1
+        ADD M[Positiony],R1
+
+
+        MOV R1, M[Positiony]
+        MOV R2, M[Positionx]
+        SHL R1, 8d
+        OR R1, R2
+        MOV M[CURSOR], R1
+        MOV R1, BALL
+
         OUT : nop
 
 
@@ -575,10 +633,14 @@ Main:			ENI
         CALL Printmenu
 
 
-        MOV R1, 41d
+        MOV R1, INITIALX
         MOV M[Positionx], R1
-        MOV R1,21d
+        MOV R1, INITIALY
         MOV M[Positiony], R1
+
+
+
+
 
         CALL Printbar
         CALL ConfigureTimer
